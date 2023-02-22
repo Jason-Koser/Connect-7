@@ -10,6 +10,8 @@ namespace DevcadeGame
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
 
+		private SpriteFont arial12;
+
 		/// <summary>
 		/// Game constructor
 		/// </summary>
@@ -29,15 +31,15 @@ namespace DevcadeGame
 
 			// Set window size if running debug (in release it will be fullscreen)
 			#region
-#if DEBUG
+			#if DEBUG
 			_graphics.PreferredBackBufferWidth = 420;
 			_graphics.PreferredBackBufferHeight = 980;
 			_graphics.ApplyChanges();
-#else
+			#else
 			_graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
 			_graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
 			_graphics.ApplyChanges();
-#endif
+			#endif
 			#endregion
 			
 			// TODO: Add your initialization logic here
@@ -55,6 +57,7 @@ namespace DevcadeGame
 			// TODO: use this.Content to load your game content here
 			// ex.
 			// texture = Content.Load<Texture2D>("fileNameWithoutExtention");
+			arial12 = Content.Load<SpriteFont>("File");
 		}
 
 		/// <summary>
@@ -86,10 +89,16 @@ namespace DevcadeGame
 		/// <param name="gameTime">This is the gameTime object you can use to get the time since last frame.</param>
 		protected override void Draw(GameTime gameTime)
 		{
-			GraphicsDevice.Clear(Color.CornflowerBlue);
+			GraphicsDevice.Clear(Color.White);
 
 			_spriteBatch.Begin();
 			// TODO: Add your drawing code here
+			_spriteBatch.DrawString(
+				arial12,
+				"Score: 0",
+				new Vector2(10, 10),
+				Color.Black
+			);
 			_spriteBatch.End();
 
 			base.Draw(gameTime);
