@@ -7,10 +7,16 @@ namespace DevcadeGame
 {
 	public class Game1 : Game
 	{
+		// Andrew Ebersole & Jason Koser
+		// 2.23.23
+		// Connect 7 the game
+
 		private GraphicsDeviceManager _graphics;
 		private SpriteBatch _spriteBatch;
 
-		private SpriteFont arial12;
+		private int selectorColumn;
+		private Meatball currentMeatball;
+		private Meatball[7,14] board; //main board of column, row
 
 		/// <summary>
 		/// Game constructor
@@ -20,6 +26,9 @@ namespace DevcadeGame
 			_graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
 			IsMouseVisible = false;
+
+			// Build the empty board with empty values
+
 		}
 
 		/// <summary>
@@ -41,8 +50,29 @@ namespace DevcadeGame
 			_graphics.ApplyChanges();
 			#endif
 			#endregion
-			
-			// TODO: Add your initialization logic here
+
+			// Set gamestate
+			gameState = GameState.Menu;
+
+			// Window Dimensions
+			windowHeight = _graphics.PreferredBackBufferHeight;
+			windowWidth = _graphics.PreferredBackBufferWidth;
+			windowTileSize = windowWidth / 7;
+
+			// Create single Color Texture
+			singleColor = new Texture2D(GraphicsDevice, 1, 1);
+			singleColor.SetData(new Color[] { Color.White });
+
+			// Menu Colors
+			menuColors = new Color[5];
+			for (int i = 0; i < menuColors.Length; i++)
+            {
+				menuColors[i] = Color.Black;
+            }
+			menuColors[0] = Color.DarkGoldenrod;
+
+			// Menu Coords
+			menuSelectorPos = 0;
 
 			base.Initialize();
 		}
@@ -54,10 +84,8 @@ namespace DevcadeGame
 		{
 			_spriteBatch = new SpriteBatch(GraphicsDevice);
 
-			// TODO: use this.Content to load your game content here
-			// ex.
-			// texture = Content.Load<Texture2D>("fileNameWithoutExtention");
-			arial12 = Content.Load<SpriteFont>("File");
+			arial24 = Content.Load<SpriteFont>("arial-24");
+
 		}
 
 		/// <summary>
@@ -78,9 +106,121 @@ namespace DevcadeGame
 				Exit();
 			}
 
-			// TODO: Add your update logic here
+			currentKB = Keyboard.GetState();
 
-			base.Update(gameTime);
+			// GameState Finite State Machine
+			#region GameState Update FSM
+			switch (gameState)
+            {
+				// Menu ---------------------------------------------
+				case GameState.Menu:
+
+					// change the selected text
+					if (currentKB.IsKeyDown(Keys.Down) && previousKB.IsKeyUp(Keys.Down)
+						|| Input.GetButton(1, Input.ArcadeButtons.StickDown)
+						|| Input.GetButton(2, Input.ArcadeButtons.StickDown))
+                    {
+						if (menuSelectorPos < 2)
+                        {
+							menuSelectorPos++;
+                        } else if (menuSelectorPos == 2)
+                        {
+							menuSelectorPos = 0;
+                        }
+                    } 
+					if (currentKB.IsKeyDown(Keys.Up) && previousKB.IsKeyUp(Keys.Up)
+						|| Input.GetButton(1, Input.ArcadeButtons.StickUp)
+						|| Input.GetButton(2, Input.ArcadeButtons.StickUp))
+					{
+						if (menuSelectorPos > 0)
+						{
+							menuSelectorPos--;
+						}
+						else if (menuSelectorPos == 0)
+						{
+							menuSelectorPos = 2;
+						}
+					}
+
+					// Select next gameState
+					if (currentKB.IsKeyDown(Keys.Enter) && previousKB.IsKeyUp(Keys.Enter)
+						|| PressAnyButton(1)
+						|| PressAnyButton(2))
+					{
+						switch (menuSelectorPos)
+                        {
+							case 0:
+								gameState = GameState.Game;
+								break;
+
+							case 1:
+								gameState = GameState.Instructions;
+								break;
+
+							case 2:
+								gameState = GameState.Credits;
+                                break;
+                        }
+					}
+
+					// Change selected text to gold all others to black
+					for (int i = 0; i < menuColors.Length; i++)
+					{
+						menuColors[i] = Color.Black;
+					}
+					menuColors[menuSelectorPos] = Color.DarkGoldenrod;
+
+					break;
+
+				// Instructions -------------------------------------
+				case GameState.Instructions:
+					if (currentKB.IsKeyDown(Keys.Enter) && previousKB.IsKeyUp(Keys.Enter)
+						|| PressAnyButton(1)
+						|| PressAnyButton(2))
+					{
+						gameState = GameState.Menu;
+					}
+					break;
+
+				// Game ---------------------------------------------
+				case GameState.Game:
+
+					// TODO: PUT THE GAME STUFF HERE
+
+
+					// Quit game
+					if (currentKB.IsKeyDown(Keys.Enter) && previousKB.IsKeyUp(Keys.Enter)
+						|| Input.GetButton(1, Input.ArcadeButtons.Menu) 
+						|| Input.GetButton(2, Input.ArcadeButtons.Menu))
+					{
+						gameState = GameState.GameOver;
+					}
+					break;
+
+				// GameOver -----------------------------------------
+				case GameState.GameOver:
+					if (currentKB.IsKeyDown(Keys.Enter) && previousKB.IsKeyUp(Keys.Enter)
+						|| PressAnyButton(1)
+						|| PressAnyButton(2))
+					{
+						gameState = GameState.Menu;
+					}
+					break;
+
+				// Credits ------------------------------------------
+				case GameState.Credits:
+					if (currentKB.IsKeyDown(Keys.Enter) && previousKB.IsKeyUp(Keys.Enter)
+						|| PressAnyButton(1)
+						|| PressAnyButton(2))
+					{
+						gameState = GameState.Menu;
+					}
+					break;
+            }
+			#endregion
+
+			previousKB = currentKB;
+            base.Update(gameTime);
 		}
 
 		/// <summary>
@@ -92,16 +232,219 @@ namespace DevcadeGame
 			GraphicsDevice.Clear(Color.White);
 
 			_spriteBatch.Begin();
-			// TODO: Add your drawing code here
-			_spriteBatch.DrawString(
-				arial12,
-				"Score: 0",
-				new Vector2(10, 10),
-				Color.Black
-			);
+
+			// Draw Finite State Machine
+			#region GameState Draw FSM
+			switch (gameState)
+			{
+				// Menu ---------------------------------------------
+				case GameState.Menu:
+					DrawMenu(_spriteBatch);
+					break;
+
+				// Instructions -------------------------------------
+				case GameState.Instructions:
+					DrawInstructions(_spriteBatch);
+
+					break;
+
+				// Game ---------------------------------------------
+				case GameState.Game:
+					DrawGame(_spriteBatch);
+					break;
+
+				// GameOver -----------------------------------------
+				case GameState.GameOver:
+					DrawGameOver(_spriteBatch);
+					break;
+
+				// Credits ------------------------------------------
+				case GameState.Credits:
+					DrawCredits(_spriteBatch);
+					break;
+			}
+			#endregion
+
 			_spriteBatch.End();
 
 			base.Draw(gameTime);
 		}
-	}
-}
+
+        #region Draw GameState Methods
+		/// <summary>
+		/// Draws all the text for the menu
+		/// </summary>
+		/// <param name="sb">Sprite batch is used by monogame to draw sprites and text</param>
+        private void DrawMenu(SpriteBatch sb)
+        {
+			sb.DrawString(
+				arial24,											// Font
+				"Connect 7!",										// Text
+				new Vector2(2 * windowTileSize, 4 * windowTileSize),// Position
+				Color.Black);                                       // Color
+
+			sb.DrawString(
+				arial24,
+				"Start Game",
+				new Vector2(1 * windowTileSize, 7 * windowTileSize),
+				menuColors[0]);
+
+			sb.DrawString(
+				arial24,
+				"How to Play",
+				new Vector2(1 * windowTileSize, 8 * windowTileSize),
+				menuColors[1]);
+			sb.DrawString(
+				arial24,
+				"Credits",
+				new Vector2(1 * windowTileSize, 9 * windowTileSize),
+				menuColors[2]);
+		}
+
+		/// <summary>
+		/// Draws all the text for instructions screen
+		/// </summary>
+		/// <param name="sb">Sprite batch is used by monogame to draw sprites and text</param>
+		private void DrawInstructions(SpriteBatch sb)
+        {
+			sb.DrawString(
+				arial24,                                            // Font
+				"Instructions",                                     // Text
+				new Vector2(2 * windowTileSize, 3 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Use left and right to select" +
+                "\na column. click any button " +
+                "\nto confirm placement. the " +
+                "\nfirst player to get 7 in a" +
+                "\nrow wins. If neither player " +
+                "\ndoes then the player with" +
+                "\nthe most points wins",								//Text
+				new Vector2(0.5f * windowTileSize, 5 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Points",											// Text
+				new Vector2(2 * windowTileSize, 10 * windowTileSize),// Position
+				Color.Black);
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Connect 4 - 1 Point" +
+                "\nConnect 5 - 2 Points" +
+                "\nConnect 6 - 5 points" +
+                "\nConnect 7 - Win",								// Text
+				new Vector2(1 * windowTileSize, 11 * windowTileSize),// Position
+				Color.Black);										//Color
+
+		}
+
+		/// <summary>
+		///  Draws the assest and text during the game
+		/// </summary>
+		/// <param name="sb">Sprite batch is used by monogame to draw sprites and text</param>
+		private void DrawGame(SpriteBatch sb)
+        {
+
+        }
+
+		/// <summary>
+		/// Draws the text for game over screen and displays who won
+		/// </summary>
+		/// <param name="sb">Sprite batch is used by monogame to draw sprites and text</param>
+		private void DrawGameOver(SpriteBatch sb)
+        {
+			sb.DrawString(
+				arial24,                                            // Font
+				"Game Over!",										// Text
+				new Vector2(2 * windowTileSize, 3 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,												// Font
+				"Someone won",											//Text
+				new Vector2(0.5f * windowTileSize, 5 * windowTileSize),	// Position
+				Color.Black);                                       //Color
+		}
+
+		/// <summary>
+		/// Draws the text for credits to show who worked on the game or who created assets used
+		/// </summary>
+		/// <param name="sb">Sprite batch is used by monogame to draw sprites and text</param>
+		private void DrawCredits(SpriteBatch sb)
+        {
+			sb.DrawString(
+				arial24,                                            // Font
+				"Credits",                                     // Text
+				new Vector2(2 * windowTileSize, 3 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Code",                                           // Text
+				new Vector2(2 * windowTileSize, 5 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Jason Koser" +
+                "\nAndrew Ebersole",		                       // Text
+				new Vector2(1 * windowTileSize, 6 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Art",                                           // Text
+				new Vector2(2 * windowTileSize, 8 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Fill in later",                               // Text
+				new Vector2(1 * windowTileSize, 9 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Sound",                                           // Text
+				new Vector2(2 * windowTileSize, 11 * windowTileSize),// Position
+				Color.Black);                                       //Color
+
+			sb.DrawString(
+				arial24,                                            // Font
+				"Fill in later",                               // Text
+				new Vector2(1 * windowTileSize, 12 * windowTileSize),// Position
+				Color.Black);                                       //Color
+		}
+        #endregion
+
+		/// <summary>
+		/// Used to tell if any of the any of the buttons have been pressed 
+		/// </summary>
+		/// <param name="playerNum"> The player whose buttons to check </param>
+		/// <returns> true if any button has been pressed false if not </returns>
+        private bool PressAnyButton(int playerNum)
+        {
+			if (Input.GetButton(playerNum, Input.ArcadeButtons.A1)
+				|| Input.GetButton(playerNum, Input.ArcadeButtons.A2)
+				|| Input.GetButton(playerNum, Input.ArcadeButtons.A3)
+				|| Input.GetButton(playerNum, Input.ArcadeButtons.A4)
+				|| Input.GetButton(playerNum, Input.ArcadeButtons.B1)
+				|| Input.GetButton(playerNum, Input.ArcadeButtons.B2)
+				|| Input.GetButton(playerNum, Input.ArcadeButtons.B3)
+				|| Input.GetButton(playerNum, Input.ArcadeButtons.B4))
+            {
+				return true;
+            }
+			return false;
+        }
+
+		private void dropMeatball(Meatball meatball, int column)
+		{
+
+		}
+	} //end of class
+}//end of namespace
