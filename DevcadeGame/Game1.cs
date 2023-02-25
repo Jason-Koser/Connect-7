@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Devcade;
+using System.IO.IsolatedStorage;
+using System.Threading.Tasks.Sources;
 
 namespace DevcadeGame
 {
@@ -46,10 +48,21 @@ namespace DevcadeGame
 		KeyboardState currentKB;
 		KeyboardState previousKB;
 
-		/// <summary>
-		/// Game constructor
-		/// </summary>
-		public Game1()
+        private int selectorColumn;
+        private Meatball currentMeatball;
+        private Meatball[,] board; //main board of column, row
+
+        //Anti-Magic numbers
+        private int rows;
+        private int cols;
+
+		// Game Stuff
+		private int score;
+
+        /// <summary>
+        /// Game constructor
+        /// </summary>
+        public Game1()
 		{
 			_graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
@@ -99,6 +112,13 @@ namespace DevcadeGame
 			// Menu Coords
 			menuSelectorPos = 0;
 
+			score = 0;
+
+			// Create grid of meatballs
+			rows = 7;
+			cols = 14;
+			
+			board = new Meatball[7, 14];
 			base.Initialize();
 		}
 
@@ -465,5 +485,49 @@ namespace DevcadeGame
             }
 			return false;
         }
-	}
-}
+
+        private bool dropMeatball(Meatball meatball, int column)
+        {
+            // go through the rows of the board in the given column to find the first null spot
+            for (int row = 0; row < rows; row++)
+            {
+                if (board[column, row] == null)
+                {
+                    board[column, row] = meatball;
+                    addScore(meatball, column, row);
+					return true;
+                }
+            }
+			return false;
+        }//end of drop meatball
+
+		private void addScore(Meatball meatball, int currentCol, int currentRow)
+		{
+			int newCol = currentCol;
+			int newRol = currentRow;
+			int inARow = 1;
+
+			// Calculate top right and bottom left
+			// Calculate top right
+			while (true)
+			{
+				// we dont want to go out of bounds
+				if (currentCol == cols || currentRow == rows)
+				{
+					break;
+				}
+
+				// if the next isnt a meatball we break
+				newCol++;
+				newRol++;
+				if (!board[newCol, newRol].Equals(meatball))
+				{
+					break;
+				}
+
+				inARow++;
+			}
+		}
+            // Calculate bottom left
+	} // end of class
+}//end of namespace
