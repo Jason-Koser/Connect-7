@@ -16,30 +16,37 @@ namespace DevcadeGame
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        private int selectorColumn;
-        private int score;
-        private Meatball currentMeatball;
-        private Meatball[7, 14] board; //main board of column, row
+        // Game State Enum
+        private enum GameState
+        {
+            Menu,
+            Game,
+            GameOver,
+            Instructions,
+            Credits
+        }
+        private GameState gameState;
 
-        //Anti-Magic numbers
-        private int rows = 14;
-        private int cols = 7;
+        // Window Dimensions
+        private int windowHeight;
+        private int windowWidth;
+        private int windowTileSize;
 
-		// Menu Selector
-		private int menuSelectorPos;
+        // Menu Selector
+        private int menuSelectorPos;
 
-		// Texture 2Ds
-		Texture2D singleColor;
+        // Texture 2Ds
+        Texture2D singleColor;
 
-		// Fonts
-		SpriteFont arial24;
+        // Fonts
+        SpriteFont arial24;
 
-		// Colors
-		private Color[] menuColors;
+        // Colors
+        private Color[] menuColors;
 
-		// Keyboard State
-		KeyboardState currentKB;
-		KeyboardState previousKB;
+        // Keyboard State
+        KeyboardState currentKB;
+        KeyboardState previousKB;
 
         private int selectorColumn;
         private Meatball currentMeatball;
@@ -49,18 +56,18 @@ namespace DevcadeGame
         private int rows;
         private int cols;
 
-		// Game Stuff
-		private int score;
+        // Game Stuff
+        private int score;
 
         /// <summary>
         /// Game constructor
         /// </summary>
         public Game1()
-		{
-			_graphics = new GraphicsDeviceManager(this);
-			Content.RootDirectory = "Content";
-			IsMouseVisible = false;
-		}
+        {
+            _graphics = new GraphicsDeviceManager(this);
+            Content.RootDirectory = "Content";
+            IsMouseVisible = false;
+        }
 
         /// <summary>
         /// Does any setup prior to the first frame that doesn't need loaded content.
@@ -105,15 +112,15 @@ namespace DevcadeGame
             // Menu Coords
             menuSelectorPos = 0;
 
-			score = 0;
+            score = 0;
 
-			// Create grid of meatballs
-			rows = 7;
-			cols = 14;
-			
-			board = new Meatball[7, 14];
-			base.Initialize();
-		}
+            // Create grid of meatballs
+            rows = 7;
+            cols = 14;
+
+            board = new Meatball[7, 14];
+            base.Initialize();
+        }
 
         /// <summary>
         /// Does any setup prior to the first frame that needs loaded content.
@@ -225,7 +232,6 @@ namespace DevcadeGame
                 case GameState.Game:
 
                     // TODO: PUT THE GAME STUFF HERE
-
 
                     // Quit game
                     if (currentKB.IsKeyDown(Keys.Enter) && previousKB.IsKeyUp(Keys.Enter)
@@ -374,7 +380,7 @@ namespace DevcadeGame
                 arial24,                                            // Font
                 "Connect 4 - 1 Point" +
                 "\nConnect 5 - 2 Points" +
-                "\nConnect 6 - 4 points" +
+                "\nConnect 6 - 5 points" +
                 "\nConnect 7 - Win",                                // Text
                 new Vector2(1 * windowTileSize, 11 * windowTileSize),// Position
                 Color.Black);                                       //Color
@@ -476,9 +482,9 @@ namespace DevcadeGame
                 || Input.GetButton(playerNum, Input.ArcadeButtons.B3)
                 || Input.GetButton(playerNum, Input.ArcadeButtons.B4))
             {
-				return true;
+                return true;
             }
-			return false;
+            return false;
         }
 
         private bool dropMeatball(Meatball meatball, int column)
@@ -490,39 +496,39 @@ namespace DevcadeGame
                 {
                     board[column, row] = meatball;
                     addScore(meatball, column, row);
-					return true;
+                    return true;
                 }
             }
-			return false;
+            return false;
         }//end of drop meatball
 
-		private void addScore(Meatball meatball, int currentCol, int currentRow)
-		{
-			int newCol = currentCol;
-			int newRol = currentRow;
-			int inARow = 1;
+        private void addScore(Meatball meatball, int currentCol, int currentRow)
+        {
+            int newCol = currentCol;
+            int newRol = currentRow;
+            int inARow = 1;
 
-			// Calculate top right and bottom left
-			// Calculate top right
-			while (true)
-			{
-				// we dont want to go out of bounds
-				if (currentCol == cols || currentRow == rows)
-				{
-					break;
-				}
+            // Calculate top right and bottom left
+            // Calculate top right
+            while (true)
+            {
+                // we dont want to go out of bounds
+                if (currentCol == cols || currentRow == rows)
+                {
+                    break;
+                }
 
-				// if the next isnt a meatball we break
-				newCol++;
-				newRol++;
-				if (!board[newCol, newRol].Equals(meatball))
-				{
-					break;
-				}
+                // if the next isnt a meatball we break
+                newCol++;
+                newRol++;
+                if (!board[newCol, newRol].Equals(meatball))
+                {
+                    break;
+                }
 
-				inARow++;
-			}
-		}
-            // Calculate bottom left
-	} // end of class
+                inARow++;
+            }
+        }
+        // Calculate bottom left
+    } // end of class
 }//end of namespace
