@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace DevcadeGame
 {
@@ -27,6 +30,7 @@ namespace DevcadeGame
         {
 
         }
+
         public bool equals(Meatball other)
         {
             return texture.Equals(other.texture);

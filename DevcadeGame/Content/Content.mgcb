@@ -13,10 +13,18 @@
 
 #---------------------------------- Content ---------------------------------#
 
+<<<<<<< HEAD
+#begin File.spritefont
+=======
 #begin arial-24.spritefont
+>>>>>>> 6b5b854bbfa6271d9f1980d0e86b6428f5fc8907
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
+<<<<<<< HEAD
+/build:File.spritefont
+=======
 /build:arial-24.spritefont
+>>>>>>> 6b5b854bbfa6271d9f1980d0e86b6428f5fc8907
 
