@@ -15,8 +15,8 @@ namespace DevcadeGame
         private Rectangle rectangle;
         private Texture2D texture;
 
-        public int x { get { return rectangle.X; }}
-        public int y { get { return rectangle.Y; }}
+        public int x { get { return rectangle.X; } }
+        public int y { get { return rectangle.Y; } }
 
         public Meatball(Texture2D texture, int x, int y, int Width, int Height)
         {
@@ -26,7 +26,12 @@ namespace DevcadeGame
 
         public void Update(GameTime gameTime)
         {
-            
+
+        }
+
+        public bool equals(Meatball other)
+        {
+            return texture.Equals(other.texture);
         }
     }
 }
