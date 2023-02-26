@@ -126,13 +126,22 @@ namespace DevcadeGame
             p2Score = 0;
 
             // Create grid of meatballs
-            rows = 7;
-            cols = 14;
+            rows = 14;
+            cols = 7;
 
             // MeatballSpinner
             meatballSpinner = 0f;
 
             board = new Meatball[7, 14];
+
+            for (int row = 0; row < rows; row++)
+            {
+                for (int col = 0; col < cols; col++)
+                {
+                    board[col, row] = new Meatball(null, 0, 0, 0, 0);
+                }
+            }
+
             base.Initialize();
         }
 
@@ -263,6 +272,10 @@ namespace DevcadeGame
                         && selectorColumn < 6)
                     {
                         selectorColumn++;
+                    }
+                    if (currentKB.IsKeyDown(Keys.Space) && previousKB.IsKeyUp(Keys.Space))
+                    {
+                        dropMeatball(currentMeatball, selectorColumn);
                     }
 
                     // Quit game
@@ -439,7 +452,7 @@ namespace DevcadeGame
                 windowTileSize * 0.1f),
                 Color.SlateGray);
 
-            // Draw Meatballs
+            // Draw Selector Meatball
             sb.Draw(currentMeatball.Texture,
                 new Rectangle((int)(windowTileSize * selectorColumn + windowTileSize * 0.5f),
                 (int)(windowTileSize * 1.5f),
@@ -452,10 +465,28 @@ namespace DevcadeGame
                 SpriteEffects.None,
                 0);
 
-            // Draw Tiles
-            for (int row = 0; row < 14; row++)
+            // Draw Meatball grid
+            for (int row = 0; row < rows; row++)
             {
-                for (int col = 0; col < 8; col++)
+                for (int col = 0; col < cols; col++)
+                {
+                    if (board[col, row].Texture != null)
+                    {
+                        sb.Draw(board[col, row].Texture,
+                        new Rectangle((int)(windowTileSize * col + windowTileSize * 0.05f),
+                        (int)(windowTileSize * 2.05f + windowTileSize * row),
+                        (int)(windowTileSize * 0.9f),
+                        (int)(windowTileSize * 0.9f)),
+                        Color.White);
+                    }
+                }
+            }
+
+            // Draw Tiles
+            for (int row = 0; row < rows; row++)
+            {
+                // Draw an extra column to fill any whitespace that appears on right side
+                for (int col = 0; col < cols + 1; col++)
                 {
                     sb.Draw(
                         tile,
@@ -595,12 +626,19 @@ namespace DevcadeGame
         private bool dropMeatball(Meatball meatball, int column)
         {
             // go through the rows of the board in the given column to find the first null spot
-            for (int row = 0; row < rows; row++)
+            for (int row = 13; row >= 0; row--)
             {
-                if (board[column, row] == null)
+                if (board[column, row].Texture == null)
                 {
-                    board[column, row] = meatball;
-                    addScore(meatball, column, row);
+                    board[column, row].Texture = meatball.Texture;
+                    //addScore(meatball, column, row);
+                    if (currentMeatball.Texture == redMeatball)
+                    {
+                        currentMeatball.Texture = whiteMeatball;
+                    } else
+                    {
+                        currentMeatball.Texture = redMeatball;
+                    }
                     return true;
                 }
             }
