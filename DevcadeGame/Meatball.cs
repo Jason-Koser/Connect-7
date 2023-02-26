@@ -19,6 +19,7 @@ namespace DevcadeGame
 
         public int x { get { return rectangle.X; } }
         public int y { get { return rectangle.Y; } }
+        public Texture2D Texture { get { return texture; } set { texture = value; } }
 
         public Meatball(Texture2D texture, int x, int y, int Width, int Height)
         {

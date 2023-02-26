@@ -40,6 +40,7 @@ namespace DevcadeGame
 
         // Fonts
         SpriteFont arial24;
+        SpriteFont arial10;
 
         // Colors
         private Color[] menuColors;
@@ -57,7 +58,16 @@ namespace DevcadeGame
         private int cols;
 
         // Game Stuff
-        private int score;
+        private int p1Score;
+        private int p2Score;
+
+        // Textures
+        Texture2D whiteMeatball;
+        Texture2D redMeatball;
+        Texture2D tile;
+
+        // Meatball Spinner
+        double meatballSpinner;
 
         /// <summary>
         /// Game constructor
@@ -112,11 +122,15 @@ namespace DevcadeGame
             // Menu Coords
             menuSelectorPos = 0;
 
-            score = 0;
+            p1Score = 0;
+            p2Score = 0;
 
             // Create grid of meatballs
             rows = 7;
             cols = 14;
+
+            // MeatballSpinner
+            meatballSpinner = 0f;
 
             board = new Meatball[7, 14];
             base.Initialize();
@@ -130,7 +144,14 @@ namespace DevcadeGame
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             arial24 = Content.Load<SpriteFont>("arial-24");
+            arial10 = Content.Load<SpriteFont>("Arial-10");
 
+            redMeatball = Content.Load<Texture2D>("redMeat");
+            whiteMeatball = Content.Load<Texture2D>("whiteMeat");
+            tile = Content.Load<Texture2D>("Tile");
+
+            // Current Meatball
+            currentMeatball = new Meatball(redMeatball, 0, 0, 0, 0);
         }
 
         /// <summary>
@@ -231,7 +252,18 @@ namespace DevcadeGame
                 // Game ---------------------------------------------
                 case GameState.Game:
 
+                    meatballSpinner += 1f * gameTime.ElapsedGameTime.TotalSeconds;
                     // TODO: PUT THE GAME STUFF HERE
+                    if (currentKB.IsKeyDown(Keys.Left) && previousKB.IsKeyUp(Keys.Left)
+                        && selectorColumn > 0)
+                    {
+                        selectorColumn--;
+                    }
+                    if (currentKB.IsKeyDown(Keys.Right) && previousKB.IsKeyUp(Keys.Right)
+                        && selectorColumn < 6)
+                    {
+                        selectorColumn++;
+                    }
 
                     // Quit game
                     if (currentKB.IsKeyDown(Keys.Enter) && previousKB.IsKeyUp(Keys.Enter)
@@ -393,7 +425,64 @@ namespace DevcadeGame
         /// <param name="sb">Sprite batch is used by monogame to draw sprites and text</param>
         private void DrawGame(SpriteBatch sb)
         {
+            // Draw Scores
+            sb.DrawString(
+                arial24,
+                $"Beef: {p1Score}",
+                new Vector2(windowTileSize * 0.1f,
+                windowTileSize * 0.1f),
+                Color.IndianRed);
+            sb.DrawString(
+                arial24,
+                $"Chicken: {p2Score}",
+                new Vector2(windowTileSize * 3.6f,
+                windowTileSize * 0.1f),
+                Color.SlateGray);
 
+            // Draw Meatballs
+            sb.Draw(currentMeatball.Texture,
+                new Rectangle((int)(windowTileSize * selectorColumn + windowTileSize * 0.5f),
+                (int)(windowTileSize * 1.5f),
+                (int)(windowTileSize * 0.8f),
+                (int)(windowTileSize * 0.8f)),
+                null,
+                Color.White,
+                (float)meatballSpinner,
+                new Vector2(currentMeatball.Texture.Width / 2,currentMeatball.Texture.Height / 2),
+                SpriteEffects.None,
+                0);
+
+            // Draw Tiles
+            for (int row = 0; row < 14; row++)
+            {
+                for (int col = 0; col < 8; col++)
+                {
+                    sb.Draw(
+                        tile,
+                        new Rectangle(windowTileSize * col,
+                        windowTileSize * 2 + windowTileSize * row,
+                        windowTileSize,
+                        windowTileSize),
+                        Color.White);
+                }
+            }
+
+            // Draw Bottom Rect
+            sb.Draw(
+                singleColor,
+                new Rectangle(0,
+                windowTileSize * 16,
+                windowWidth,
+                windowTileSize),
+                Color.Black);
+
+            // Draw Bottom text
+            sb.DrawString(
+                arial10,
+                "Use Stick to move, A1 to drop, and Left Menu to exit",
+                new Vector2(windowTileSize * 0.1f,
+                windowTileSize * 16.1f),
+                Color.White);
         }
 
         /// <summary>
@@ -408,11 +497,27 @@ namespace DevcadeGame
                 new Vector2(2 * windowTileSize, 3 * windowTileSize),// Position
                 Color.Black);                                       //Color
 
+            string winner = "";
+            Color winnerColor = new Color();
+            if (p1Score > p2Score)
+            {
+                winner = "Beef Won!";
+                winnerColor = Color.IndianRed;
+            } else if (p1Score < p2Score)
+            {
+                winner = "Chicken Won!";
+                winnerColor = Color.SlateGray;
+            } else
+            {
+                winner = "Its a tie :(";
+                winnerColor = Color.Black;
+            }
+
             sb.DrawString(
                 arial24,                                                // Font
-                "Someone won",                                          //Text
+                winner,                                          //Text
                 new Vector2(0.5f * windowTileSize, 5 * windowTileSize), // Position
-                Color.Black);                                       //Color
+                winnerColor);                                       //Color
         }
 
         /// <summary>
