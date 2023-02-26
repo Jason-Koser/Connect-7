@@ -13,6 +13,7 @@ namespace DevcadeGame
         // 2.23.23
         // Connect 7 the game
 
+        #region fields
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -68,6 +69,7 @@ namespace DevcadeGame
 
         // Meatball Spinner
         double meatballSpinner;
+        #endregion
 
         /// <summary>
         /// Game constructor
@@ -227,6 +229,15 @@ namespace DevcadeGame
                         {
                             case 0:
                                 gameState = GameState.Game;
+                                for (int row = 0; row < rows; row++)
+                                {
+                                    for (int col = 0; col < cols; col++)
+                                    {
+                                        board[col, row] = new Meatball(null, 0, 0, 0, 0);
+                                    }
+                                }
+                                p1Score = 0;
+                                p2Score = 0;
                                 break;
 
                             case 1:
@@ -345,6 +356,7 @@ namespace DevcadeGame
 
                 // GameOver -----------------------------------------
                 case GameState.GameOver:
+                    DrawGame(_spriteBatch);
                     DrawGameOver(_spriteBatch);
                     break;
 
@@ -522,10 +534,17 @@ namespace DevcadeGame
         /// <param name="sb">Sprite batch is used by monogame to draw sprites and text</param>
         private void DrawGameOver(SpriteBatch sb)
         {
+            sb.Draw(singleColor,
+                new Rectangle(0,
+                windowTileSize,
+                windowWidth,
+                windowTileSize),
+                Color.White);
+
             sb.DrawString(
                 arial24,                                            // Font
                 "Game Over!",                                       // Text
-                new Vector2(2 * windowTileSize, 3 * windowTileSize),// Position
+                new Vector2(0.5f * windowTileSize, 1 * windowTileSize),// Position
                 Color.Black);                                       //Color
 
             string winner = "";
@@ -547,7 +566,7 @@ namespace DevcadeGame
             sb.DrawString(
                 arial24,                                                // Font
                 winner,                                          //Text
-                new Vector2(0.5f * windowTileSize, 5 * windowTileSize), // Position
+                new Vector2(3.5f * windowTileSize, 1 * windowTileSize), // Position
                 winnerColor);                                       //Color
         }
 
@@ -631,7 +650,7 @@ namespace DevcadeGame
                 if (board[column, row].Texture == null)
                 {
                     board[column, row].Texture = meatball.Texture;
-                    //addScore(meatball, column, row);
+                    calculateScore(meatball, column, row);
                     if (currentMeatball.Texture == redMeatball)
                     {
                         currentMeatball.Texture = whiteMeatball;
@@ -645,31 +664,88 @@ namespace DevcadeGame
             return false;
         }//end of drop meatball
 
-        private void addScore(Meatball meatball, int currentCol, int currentRow)
+        private void calculateScore(Meatball meatball, int currentCol, int currentRow)
         {
+            // Calculate Down ----------1
+            int inARow = calculateDirection(meatball, 0, 1, currentCol, currentRow);
+            addScore(inARow);
+
+            // Calculate Left/Right ----------2
+            inARow = calculateDirection(meatball, -1, 0, currentCol, currentRow);
+            inARow += calculateDirection(meatball, 1, 0, currentCol, currentRow);
+            inARow -= 1;
+            addScore(inARow);
+
+            // Calculate Positive Diaganol ---------3
+            inARow = calculateDirection(meatball, -1, 1, currentCol, currentRow);
+            inARow += calculateDirection(meatball, 1, -1, currentCol, currentRow);
+            inARow -= 1;
+            addScore(inARow);
+
+            // Calculate Negative Diaganol ----------4
+            inARow = calculateDirection(meatball, -1, -1, currentCol, currentRow);
+            inARow += calculateDirection(meatball, 1, 1, currentCol, currentRow);
+            inARow -= 1;
+            addScore(inARow);
+        }
+
+        private int calculateDirection(Meatball meatball, int xDirection, int yDirection, int currentCol, int currentRow)
+        {
+            Texture2D checkTexture = meatball.Texture;
+            int inARow = 0;
             int newCol = currentCol;
-            int newRol = currentRow;
-            int inARow = 1;
+            int newRow = currentRow;
 
-            // Calculate top right and bottom left
-            // Calculate top right
-            while (true)
+            while (meatball.Texture == checkTexture)
             {
-                // we dont want to go out of bounds
-                if (currentCol == cols || currentRow == rows)
-                {
-                    break;
-                }
-
-                // if the next isnt a meatball we break
-                newCol++;
-                newRol++;
-                if (!board[newCol, newRol].Equals(meatball))
-                {
-                    break;
-                }
-
                 inARow++;
+                if (newCol + xDirection < 0
+                    || newCol + xDirection > 6
+                    || newRow + yDirection < 0
+                    || newRow + yDirection > 13)
+                {
+                    break;
+                }
+
+                newCol = newCol + xDirection;
+                newRow = newRow + yDirection;
+                checkTexture = board[newCol, newRow].Texture;
+            }
+            return inARow;
+        }
+
+        private void addScore(int inARow)
+        {
+            // How many points based off of number in a row
+            int scoreIncrease = 0;
+            switch (inARow)
+            {
+                case 4:
+                    scoreIncrease = 1;
+                    break;
+                case 5:
+                    scoreIncrease = 2;
+                    break;
+                case 6:
+                    scoreIncrease = 5;
+                    break;
+                case 7:
+                    scoreIncrease = 700;
+                    break;
+            }
+
+            // Decide who to give points too
+            if (currentMeatball.Texture == redMeatball)
+            {
+                p1Score += scoreIncrease;
+            } else
+            {
+                p2Score += scoreIncrease;
+            }
+
+            if (scoreIncrease == 700)
+            {
+                gameState = GameState.GameOver;
             }
         }
         // Calculate bottom left
